@@ -10,12 +10,15 @@ import io.vertx.core.json.JsonObject;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+/**
+ * This class is responsible for conversion of provided integer or min/max value to its Roman String
+ */
 public class RomanVerticle extends AbstractVerticle {
 
-    private static final Logger log = LoggerFactory.getLogger(RomanVerticle .class);
-
+    private static final Logger logger = LoggerFactory.getLogger(RomanVerticle .class);
     private static final Map<Integer, String> romanCache = new LinkedHashMap<Integer, String>() {{
         put(Integer.valueOf(1000), "M");
         put(900, "CM");
@@ -35,21 +38,23 @@ public class RomanVerticle extends AbstractVerticle {
 
     @Override
     public void start() {
-        this.vertx.eventBus().consumer("com.adobe.romanverticle", msg -> {
+        vertx.eventBus().consumer("com.adobe.romanverticle", msg -> {
             JsonObject inputMsg = (JsonObject) msg.body();
+            JsonObject resultObj;
             Integer input = inputMsg.getInteger("input");
-            Integer min = inputMsg.getInteger("min")
-                    Integer max =  inputMsg.getInteger("max")
-            log.info(inputMsg);
-            log.info("INPUT = " + input);
-
-            log.info("MIN = " + min);
-            log.info("MAX = " + max);
-            if (input!=0) {
-                msg.reply(toRoman(inputMsg.getInteger("input")));
+            Integer min = inputMsg.getInteger("min");
+            Integer max =  inputMsg.getInteger("max");
+            logger.info(inputMsg);
+            logger.info("INPUT = " + input);
+            logger.info("MIN = " + min);
+            logger.info("MAX = " + max);
+            if (input!=null) {
+                resultObj = toRoman(input).result();
+                msg.reply(resultObj);
             }
-            else if (min !=0 && max !=0 ) {
-                msg.reply(toRoman(min,max));
+            else if (min !=null && max !=null ) {
+                resultObj = toRoman(min,max).result();
+                msg.reply(resultObj);
             }
             else {
                 msg.fail(400,"Invalid arguments");
@@ -58,7 +63,7 @@ public class RomanVerticle extends AbstractVerticle {
     }
 
     public Future<JsonObject> toRoman(Integer input, Integer minRange, Integer maxRange) throws IllegalArgumentException {
-        StringBuilder romanString = new StringBuilder("");
+        StringBuilder romanString = new StringBuilder();
         JsonObject outputJson = new JsonObject();
         outputJson.put("input", input);
 
@@ -124,12 +129,16 @@ public class RomanVerticle extends AbstractVerticle {
             return Future.failedFuture("Invalid input range. minimum range should be less than max range");
         }
 
-        JsonArray conversations = new JsonArray();
-        IntStream.range(inputMinRange, inputMaxRange).forEach(input -> {
-            conversations.add(toRoman(input, minRange, maxRange));
-        });
+        JsonArray conversations = new JsonArray(
+        IntStream.range(inputMinRange, inputMaxRange + 1 )
+                .mapToObj(inputData -> toRoman(inputData,minRange, maxRange))
+                .filter(Future::succeeded)
+                .map(Future::result)
+                .collect(Collectors.toList()));
+        //conversations.add(toRoman(input, minRange, maxRange));
         JsonObject outputObj = new JsonObject();
         outputObj.put("conversations", conversations);
+        System.out.println(conversations);
         return Future.succeededFuture(outputObj);
     }
 }

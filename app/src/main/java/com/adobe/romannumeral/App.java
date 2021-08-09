@@ -15,7 +15,11 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.logging.Logger;
 
-
+/**
+ * This is the main application or verticle code. This registers all asynchronous processing
+ * code like HttpServer and Roman Converter. This class is also responsible for parsing configuration
+ * inputs like Port numbers, min max ranges
+ */
 public class App extends AbstractVerticle {
     private static final Logger log = Logger.getLogger(App.class.getName());
     final JsonObject loadedConfig = new JsonObject();
@@ -25,6 +29,7 @@ public class App extends AbstractVerticle {
      * Kubernetes configmaps, file and system environment variables
      */
     private Future<JsonObject> readConfig(Promise<Void> start) {
+        log.info("Reading config");
         JsonObject configObject = new JsonObject()
                 .put("http.port", 8080)
                 .put("roman.min", 1)
@@ -32,12 +37,11 @@ public class App extends AbstractVerticle {
         ConfigStoreOptions defaultConfig = new ConfigStoreOptions().setType("json").setConfig(configObject).setOptional(true);
         ConfigRetrieverOptions options = new ConfigRetrieverOptions().addStore(defaultConfig);
         if (Files.exists(Paths.get("config.json"))) {
-            System.out.println("Loading configuration from config.json file");
+            log.info("Loading configuration from config.json file");
             ConfigStoreOptions fileStore = new ConfigStoreOptions()
                     .setType("file").setFormat("json")
                     .setConfig(new JsonObject().put("path", "config.json"));
             options.addStore(fileStore);
-            System.out.println("config loaded");
         }
 
         ConfigRetriever cfgRetriever = ConfigRetriever.create(vertx, options);
@@ -45,7 +49,7 @@ public class App extends AbstractVerticle {
     }
 
     private Future<Void> storeConfig(JsonObject configData) {
-        System.out.println(configData);
+        log.info("Storing config");
         loadedConfig.mergeIn(configData);
         return Future.succeededFuture();
     }
@@ -59,6 +63,7 @@ public class App extends AbstractVerticle {
     }
 
     private Future<Void> deployOtherVerticles(Void unused) {
+        log.info("Deploying verticles");
         DeploymentOptions dop = new DeploymentOptions().setConfig(loadedConfig);
         DeploymentOptions dopWorker = new DeploymentOptions().setConfig(loadedConfig).setInstances(50);
         Future<String> webv = Future.future(promise -> vertx.deployVerticle(WebVerticle.class, dop, promise));
