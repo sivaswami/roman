@@ -1,16 +1,23 @@
 package com.adobe.romannumeral;
 
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Future;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 public class RomanVerticle extends AbstractVerticle {
 
-    // TODO: CACHE THIS. map containing roman characters till 255.
-    public static final Map<Integer, String> romanMapCache = new LinkedHashMap<Integer, String>() {{
-        put(1000, "M");
+    private static final Logger log = LoggerFactory.getLogger(RomanVerticle .class);
+
+    private static final Map<Integer, String> romanCache = new LinkedHashMap<Integer, String>() {{
+        put(Integer.valueOf(1000), "M");
         put(900, "CM");
         put(500, "D");
         put(400, "CD");
@@ -25,33 +32,104 @@ public class RomanVerticle extends AbstractVerticle {
         put(1, "I");
     }};
 
+
     @Override
     public void start() {
-        vertx.eventBus().consumer("com.adobe.romanverticle", msg -> {
-            System.out.println("Message received: " + msg.body());
-            msg.reply(toRoman((Integer) msg.body()));
+        this.vertx.eventBus().consumer("com.adobe.romanverticle", msg -> {
+            JsonObject inputMsg = (JsonObject) msg.body();
+            Integer input = inputMsg.getInteger("input");
+            Integer min = inputMsg.getInteger("min")
+                    Integer max =  inputMsg.getInteger("max")
+            log.info(inputMsg);
+            log.info("INPUT = " + input);
 
+            log.info("MIN = " + min);
+            log.info("MAX = " + max);
+            if (input!=0) {
+                msg.reply(toRoman(inputMsg.getInteger("input")));
+            }
+            else if (min !=0 && max !=0 ) {
+                msg.reply(toRoman(min,max));
+            }
+            else {
+                msg.fail(400,"Invalid arguments");
+            }
         });
     }
 
-    public static String toRoman(Integer input) throws IllegalArgumentException {
-        StringBuilder romanString = new StringBuilder();
-        if (input < 1 || input > 255) {
-            return "ERROR: Integer is less than 1 or greater than 255";
+    public Future<JsonObject> toRoman(Integer input, Integer minRange, Integer maxRange) throws IllegalArgumentException {
+        StringBuilder romanString = new StringBuilder("");
+        JsonObject outputJson = new JsonObject();
+        outputJson.put("input", input);
+
+        if (input < minRange || input > maxRange) {
+            //outputJson.put("error", String.format("Integer is out of range %d - %d", minRange, maxRange));
+            return Future.failedFuture(String.format("Integer is out of range %d - %d", minRange, maxRange));
         }
-        String isAvailableInCache = romanMapCache.get(input);
+        String isAvailableInCache = romanCache.get(input);
         if (null != isAvailableInCache) {
-            return isAvailableInCache;
+            outputJson.put("output", isAvailableInCache);
         } else { // compute the Roman and store it in cache for future queries
-            for (Map.Entry<Integer, String> mapEntry : romanMapCache.entrySet()) {
+            for (Map.Entry<Integer, String> mapEntry : romanCache.entrySet()) {
                 Integer keyVal = mapEntry.getKey();
                 int temp = input / keyVal;
                 input %= keyVal;
                 romanString.append(String.join("", Collections.nCopies(temp, mapEntry.getValue())));
             }
             //romanMapCache.putIfAbsent(input, romanString);
-            return romanString.toString();
+
+            outputJson.put("output", romanString.toString());
         }
+        return Future.succeededFuture(outputJson);
+
     }
 
+    public Future<JsonObject> toRoman(Integer input) throws IllegalArgumentException {
+        Integer maxRange = config().getInteger("roman.max");
+        Integer minRange = config().getInteger("roman.min");
+        if (minRange > maxRange) {
+            return Future.failedFuture(String.format("Invalid configuration min (%d) > max (%d) range ", minRange, maxRange));
+        }
+        if (minRange < 1 || maxRange < 1) {
+            return Future.failedFuture(String.format("Invalid configuration  Negative min (%d) > max (%d) range ", minRange, maxRange));
+        }
+        if (minRange > 3999 || maxRange > 3999) {
+            return Future.failedFuture("Invalid configuration  Max range supported is 3999 ");
+        }
+        return toRoman(input, minRange, maxRange);
+    }
+
+
+    public Future<JsonObject> toRoman(Integer inputMinRange, Integer inputMaxRange) throws IllegalArgumentException {
+        Integer maxRange = config().getInteger("roman.max");
+        Integer minRange = config().getInteger("roman.min");
+        if (minRange > maxRange) {
+            return Future.failedFuture(String.format("Invalid configuration min (%d) > max (%d) range ", minRange, maxRange));
+        }
+        if (minRange < 1 || maxRange < 1) {
+            return Future.failedFuture(String.format("Invalid configuration  Negative min (%d) > max (%d) range ", minRange, maxRange));
+        }
+        if (minRange > 3999 || maxRange > 3999) {
+            return Future.failedFuture("Invalid configuration  Max range supported is 3999 ");
+
+        }
+        if (inputMinRange < minRange || inputMinRange > maxRange) {
+            return Future.failedFuture("Invalid input range. should faill between min and max range supported.");
+        }
+
+        if (inputMaxRange < minRange || inputMaxRange > maxRange) {
+            return Future.failedFuture("Invalid input max range. should faill between min and max range supported.");
+        }
+        if (inputMinRange > inputMaxRange) {
+            return Future.failedFuture("Invalid input range. minimum range should be less than max range");
+        }
+
+        JsonArray conversations = new JsonArray();
+        IntStream.range(inputMinRange, inputMaxRange).forEach(input -> {
+            conversations.add(toRoman(input, minRange, maxRange));
+        });
+        JsonObject outputObj = new JsonObject();
+        outputObj.put("conversations", conversations);
+        return Future.succeededFuture(outputObj);
+    }
 }
