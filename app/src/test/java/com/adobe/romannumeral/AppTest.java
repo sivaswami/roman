@@ -1,7 +1,6 @@
 package com.adobe.romannumeral;
 
 import io.vertx.core.json.JsonObject;
-import org.junit.Assert;
 import org.junit.Test;
 
 public class AppTest {

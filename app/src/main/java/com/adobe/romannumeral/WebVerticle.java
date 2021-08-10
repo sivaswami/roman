@@ -15,6 +15,9 @@ import io.vertx.ext.web.handler.StaticHandler;
 import java.util.List;
 import java.util.logging.Logger;
 
+/**
+ * This code is responsible for launching http server and properly routing the request to handler for further processing.
+ */
 public class WebVerticle extends AbstractVerticle {
     private static final Logger log = Logger.getLogger(WebVerticle.class.getName());
 
@@ -59,6 +62,8 @@ public class WebVerticle extends AbstractVerticle {
 
     /**
      * This is the handler which processes any /romannumeral call and its parameters
+     * Responsible for validating the parameters and based on parameter invoke call
+     *
      * @param ctx
      */
 
@@ -79,10 +84,15 @@ public class WebVerticle extends AbstractVerticle {
         } else if (!queryMinInput.isEmpty() && !queryMaxInput.isEmpty()) {
             minData = Integer.parseInt(queryMinInput.get(0));
             maxData = Integer.parseInt(queryMaxInput.get(0));
+            if (minData < config().getInteger("roman.min") || maxData < config().getInteger("roman.min") || minData > config().getInteger("roman.max") || maxData > config().getInteger("roman.max")) {
+                ctx.response().setStatusCode(400).end("Invalid value min " + minData + " or max Data " + maxData + " not matching with configured range");
+                return;
+            }
             if (minData < 1 || maxData < 1 || minData > 3999 || maxData > 3999) {
                 ctx.response().setStatusCode(400).end("Invalid value  min " + minData + " or max Data " + maxData);
                 return;
             }
+
             message.put("min", minData);
             message.put("max", maxData);
         } else {
@@ -97,7 +107,7 @@ public class WebVerticle extends AbstractVerticle {
             if (aresponse.succeeded()) {
                 ctx.response().setStatusCode(200).end(Json.encodePrettily(aresponse.result().body()));
             } else {
-                ctx.response().setStatusCode(400).end("ERROR: " + aresponse.cause());
+                ctx.response().setStatusCode(400).end(Json.encodePrettily(aresponse.cause().getMessage()));
             }
         });
     }
