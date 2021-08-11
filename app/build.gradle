@@ -7,23 +7,27 @@
  */
 
 plugins {
-    // Apply the application plugin to add support for building a CLI application in Java.
+    id 'java'
     id 'application'
     id 'com.google.cloud.tools.jib' version '3.1.2'
-    id "com.palantir.docker" version "0.27.0"
 }
 
 jib {
     allowInsecureRegistries = false
     containerizingMode = 'packaged'
+    from {
+        image = "openjdk:8-jdk-oraclelinux8"
+    }
     to {
-        image= 'romannumeral'
+        image = 'romannumeral'
     }
     container {
-        jvmFlags=['-Xmx512m ', ' -Djava.util.concurrent.ForkJoinPool.common.parallelism=50']
         mainClass = 'com.adobe.romannumeral.App'
-//        exposedPorts = ['9090', '8080', '3000']
+        ports = ["9090", "8080"]
         appRoot = '/'
+        environment = [
+                'HTTP_PORT': '9090'
+        ]
     }
 }
 
@@ -47,8 +51,12 @@ dependencies {
     implementation("io.vertx:vertx-config:4.1.2")
     implementation("io.vertx:vertx-core:4.1.2")
     implementation("io.vertx:vertx-web-validation:4.1.2")
+    implementation("ch.qos.logback:logback-classic:1.2.3")
     testImplementation("junit:junit:4.13")
     implementation("com.google.guava:guava:30.1-jre")
+    implementation("io.vertx:vertx-health-check:4.1.2")
+    implementation("io.vertx:vertx-micrometer-metrics:4.1.2")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.5.2")
 }
 
 // Define the main class for the application.

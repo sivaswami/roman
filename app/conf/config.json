@@ -1,0 +1,5 @@
+{
+  "path" : "config.json",
+  "http.port" : 9090,
+  "roman.max" : 255
+}

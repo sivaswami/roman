@@ -8,9 +8,13 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.healthchecks.HealthCheckHandler;
+import io.vertx.ext.healthchecks.Status;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.ext.web.handler.StaticHandler;
+import io.vertx.micrometer.PrometheusScrapingHandler;
 
 import java.util.List;
 import java.util.logging.Logger;
@@ -41,9 +45,14 @@ public class WebVerticle extends AbstractVerticle {
         };
         router.route().handler(loggingHandler);
         //  router.route().handler(LoggerHandler.create());
-//        router.route().handler(CorsHandler.create("localhost"));
+       router.route().handler(CorsHandler.create("localhost"));
         router.get("/romannumeral").handler(this::romanServiceHandler);
+        router.route("/*").handler(StaticHandler.create());
         router.route().handler(StaticHandler.create("web").setIndexPage("index.html"));
+        HealthCheckHandler hc = HealthCheckHandler.create(vertx);
+        hc.register("dummy-health-check", future -> future.complete(Status.OK()));
+        router.route("/metrics").handler(PrometheusScrapingHandler.create());
+        router.get("/health").handler(hc);
         return Future.succeededFuture(router);
     }
 
@@ -54,10 +63,14 @@ public class WebVerticle extends AbstractVerticle {
      * @return
      */
     private Future<HttpServer> startHttpServer(Router router) {
-        final int httpPort = config().getInteger("http.port");
-        log.info("Starting server in port : " + httpPort);
+        int httpPort = config().getInteger(App.HTTP_PORT);
+        if (App.ENV_HTTP_PORT != 0 ) {
+            httpPort = App.ENV_HTTP_PORT;
+        }
+        log.info("Starting server in port : " + httpPort + " in the pod " + App.ENV_POD_NAME);
+        final int httpPortFinal = httpPort; // server listen requires effective final
         HttpServer server = vertx.createHttpServer().requestHandler(router);
-        return Future.future(promise -> server.listen(httpPort, promise));
+        return Future.future(promise -> server.listen(httpPortFinal, promise));
     }
 
     /**
@@ -84,7 +97,7 @@ public class WebVerticle extends AbstractVerticle {
         } else if (!queryMinInput.isEmpty() && !queryMaxInput.isEmpty()) {
             minData = Integer.parseInt(queryMinInput.get(0));
             maxData = Integer.parseInt(queryMaxInput.get(0));
-            if (minData < config().getInteger("roman.min") || maxData < config().getInteger("roman.min") || minData > config().getInteger("roman.max") || maxData > config().getInteger("roman.max")) {
+            if (minData < config().getInteger(App.ROMAN_MIN) || maxData < config().getInteger(App.ROMAN_MIN) || minData > config().getInteger(App.ROMAN_MAX) || maxData > config().getInteger(App.ROMAN_MAX)) {
                 ctx.response().setStatusCode(400).end("Invalid value min " + minData + " or max Data " + maxData + " not matching with configured range");
                 return;
             }

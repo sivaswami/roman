@@ -94,8 +94,8 @@ public class RomanVerticle extends AbstractVerticle {
     }
 
     public Future<JsonObject> toRoman(Integer input) throws IllegalArgumentException {
-        Integer maxRange = config().getInteger("roman.max");
-        Integer minRange = config().getInteger("roman.min");
+        Integer maxRange = config().getInteger(App.ROMAN_MAX);
+        Integer minRange = config().getInteger(App.ROMAN_MIN);
         if (minRange > maxRange) {
             return Future.failedFuture(String.format("Invalid configuration min (%d) > max (%d) range ", minRange, maxRange));
         }
@@ -110,8 +110,8 @@ public class RomanVerticle extends AbstractVerticle {
 
 
     public Future<JsonObject> toRoman(Integer inputMinRange, Integer inputMaxRange) throws IllegalArgumentException {
-        Integer maxRange = config().getInteger("roman.max");
-        Integer minRange = config().getInteger("roman.min");
+        Integer maxRange = config().getInteger(App.ROMAN_MAX);
+        Integer minRange = config().getInteger(App.ROMAN_MIN);
         logger.info("Input Min Range = " + inputMinRange + " Input Max Range = " + inputMaxRange + " max range = " + maxRange + " min range = " + minRange);
         if (minRange > maxRange) {
             return Future.failedFuture(String.format("Invalid configuration min (%d) > max (%d) range ", minRange, maxRange));
