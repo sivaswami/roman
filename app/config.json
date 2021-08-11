@@ -1,6 +1,6 @@
 {
-  "path" : "config.json",
-  "http.port" : 9090,
-"roman.min":1,
-  "roman.max" : 4000
+  "path": "config.json",
+  "http.port": 8080,
+  "roman.min": 1,
+  "roman.max": 3999
 }
