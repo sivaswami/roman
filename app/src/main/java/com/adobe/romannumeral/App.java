@@ -30,8 +30,10 @@ public class App extends AbstractVerticle {
     public static final String HTTP_PORT = "http.port";
     public static final String POD_NAME = "pod.name";
     final JsonObject loadedConfig = new JsonObject();
-    public static final int ENV_HTTP_PORT = Integer.parseInt(System.getenv().getOrDefault("HTTP_PORT", "0"));
-    public static final String ENV_POD_NAME = System.getenv().getOrDefault("POD_NAME", "unknown");
+    public static final int ENV_HTTP_PORT = Integer.parseInt(System.getenv().getOrDefault("HTTP_PORT", "8080").trim());
+    public static final int ENV_ROMAN_MIN = Integer.parseInt(System.getenv().getOrDefault("ROMAN_MIN", "1").trim());
+    public static final int ENV_ROMAN_MAX = Integer.parseInt(System.getenv().getOrDefault("ROMAN_MAX", "3999").trim());
+    public static final String ENV_POD_NAME = System.getenv().getOrDefault("POD_NAME", "<unknown pod>");
 
     /**
      * Read Configuration Parameters from the multiple locations like
@@ -39,21 +41,23 @@ public class App extends AbstractVerticle {
      */
     private Future<JsonObject> readConfig(Promise<Void> start) {
         log.info("Reading config");
-
-        JsonObject configObject = new JsonObject()
-                .put(HTTP_PORT, 8080)
-                .put(ROMAN_MIN, 1)
-                .put(POD_NAME, "unknown")
-                .put(ROMAN_MAX, 255);
-        ConfigStoreOptions defaultConfig = new ConfigStoreOptions().setType("json").setConfig(configObject).setOptional(true);
-        ConfigRetrieverOptions options = new ConfigRetrieverOptions().addStore(defaultConfig);
+        ConfigRetrieverOptions options = new ConfigRetrieverOptions();
         if (Files.exists(Paths.get("config.json"))) {
             log.info("Loading configuration from config.json file");
             ConfigStoreOptions fileStore = new ConfigStoreOptions()
                     .setType("file").setFormat("json")
+                    .setOptional(true)
                     .setConfig(new JsonObject().put("path", "config.json"));
             options.addStore(fileStore);
         }
+
+        JsonObject configObject = new JsonObject()
+                .put(HTTP_PORT, ENV_HTTP_PORT)
+                .put(ROMAN_MIN, ENV_ROMAN_MIN)
+                .put(POD_NAME, ENV_POD_NAME)
+                .put(ROMAN_MAX, ENV_ROMAN_MAX);
+        ConfigStoreOptions defaultConfig = new ConfigStoreOptions().setType("json").setConfig(configObject).setOptional(true);
+        options.addStore(defaultConfig);
 
         ConfigRetriever cfgRetriever = ConfigRetriever.create(vertx, options);
         return Future.future(cfgRetriever::getConfig);

@@ -11,24 +11,41 @@ This code uses REST API and Asynchronous calls (Vertx.io) to convert a given num
 
 
 ## How to Install
+
+### Clone repository
 The code can be cloned from github using the below command
 ```
 git clone https://github.com/sivaswami/roman
 cd roman
 ```
-Change the gradle.properties to include any proxies. If no proxies, remove the file.
+
+### Proxy setup
+
+Fill in the fields of gradle.properties to include any proxies. If no proxies, remove the file.
+
 
 ### Compile and run the code locally
 
 Run the code with
 ```
+export HTTP_PORT=8080 # or custom port
+export ROMAN_MAX=255 # for 255 or 3999
+
 gradle clean app:run
+
 ```
 ### Compile and run the code in Docker
 
-Ensure docker is available locally. Compile docker image using
+Ensure docker is available locally.
+
+Compile docker image using
+
 ```
 gradle jibDockerBuild
+```
+change HTTP_PORT & ROMAN_MAX environment variable in docker-compose.yaml to change server port and roman number maximum in docker file.
+
+``` 
 docker-compose up
 ```
 

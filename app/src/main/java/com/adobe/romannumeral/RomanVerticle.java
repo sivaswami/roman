@@ -20,7 +20,7 @@ public class RomanVerticle extends AbstractVerticle {
 
     private static final Logger logger = LoggerFactory.getLogger(RomanVerticle.class);
     private static final Map<Integer, String> romanCache = new LinkedHashMap<Integer, String>() {{
-        put(Integer.valueOf(1000), "M");
+        put(1000, "M");
         put(900, "CM");
         put(500, "D");
         put(400, "CD");
