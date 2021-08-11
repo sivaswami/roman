@@ -11,19 +11,20 @@ This code uses REST API and Asynchronous calls (Vertx.io) to convert a given num
 
 
 ## How to Install
-### Compile and run the code locally
 The code can be cloned from github using the below command
 ```
-git clone <github_url>
+git clone https://github.com/sivaswami/roman
 cd roman
 ```
 Change the gradle.properties to include any proxies. If no proxies, remove the file.
+
+### Compile and run the code locally
 
 Run the code with
 ```
 gradle clean app:run
 ```
-## Compile and run the code in Docker
+### Compile and run the code in Docker
 
 Ensure docker is available locally. Compile docker image using
 ```
