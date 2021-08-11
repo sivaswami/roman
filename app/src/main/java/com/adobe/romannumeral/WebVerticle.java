@@ -45,12 +45,12 @@ public class WebVerticle extends AbstractVerticle {
         };
         router.route().handler(loggingHandler);
         //  router.route().handler(LoggerHandler.create());
-       router.route().handler(CorsHandler.create("localhost"));
+        router.route().handler(CorsHandler.create("localhost"));
         router.get("/romannumeral").handler(this::romanServiceHandler);
         router.route("/*").handler(StaticHandler.create());
         router.route().handler(StaticHandler.create("web").setIndexPage("index.html"));
         HealthCheckHandler hc = HealthCheckHandler.create(vertx);
-        hc.register("dummy-health-check", future -> future.complete(Status.OK()));
+        hc.register("RomanService", future -> future.complete(Status.OK()));
         router.route("/metrics").handler(PrometheusScrapingHandler.create());
         router.get("/health").handler(hc);
         return Future.succeededFuture(router);
@@ -64,7 +64,7 @@ public class WebVerticle extends AbstractVerticle {
      */
     private Future<HttpServer> startHttpServer(Router router) {
         int httpPort = config().getInteger(App.HTTP_PORT);
-        if (App.ENV_HTTP_PORT != 0 ) {
+        if (App.ENV_HTTP_PORT != 0) {
             httpPort = App.ENV_HTTP_PORT;
         }
         log.info("Starting server in port : " + httpPort + " in the pod " + App.ENV_POD_NAME);

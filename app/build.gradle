@@ -16,7 +16,8 @@ jib {
     allowInsecureRegistries = false
     containerizingMode = 'packaged'
     from {
-        image = "openjdk:8-jdk-oraclelinux8"
+        image= "openjdk:8-jre-alpine"
+       // image = "openjdk:8-jdk-oraclelinux8"
     }
     to {
         image = 'romannumeral'
@@ -53,6 +54,10 @@ dependencies {
     implementation("io.vertx:vertx-web-validation:4.1.2")
     implementation("ch.qos.logback:logback-classic:1.2.3")
     testImplementation("junit:junit:4.13")
+    testImplementation("io.vertx:vertx-unit:4.1.2")
+    testImplementation('io.vertx:vertx-web-client:3.9.8')
+    testImplementation('com.jayway.restassured:rest-assured:2.4.0')
+    testImplementation('org.assertj:assertj-core:2.0.0')
     implementation("com.google.guava:guava:30.1-jre")
     implementation("io.vertx:vertx-health-check:4.1.2")
     implementation("io.vertx:vertx-micrometer-metrics:4.1.2")
