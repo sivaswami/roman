@@ -8,8 +8,8 @@ services:
     entrypoint: [ 'java', '-Xmx512m' ,  '-Djava.util.concurrent.ForkJoinPool.common.parallelism=50',
                   '-cp', '/classpath/*:/libs/*', 'com.adobe.romannumeral.App' ]
     environment:
-      - HTTP_PORT: '8080'
-      - ROMAN_MAX: '3999'
+      - HTTP_PORT=8080
+      - ROMAN_MAX=3999
     expose:
       - 8080
       - 9090
