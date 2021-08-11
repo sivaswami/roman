@@ -13,14 +13,23 @@ This code uses REST API and Asynchronous calls (Vertx.io) to convert a given num
 ## How to Install
 ### Compile and run the code locally
 The code can be cloned from github using the below command
-
 ```
 git clone <github_url>
 cd roman
+```
+Change the gradle.properties to include any proxies. If no proxies, remove the file.
+
+Run the code with
+```
 gradle clean app:run
 ```
 ## Compile and run the code in Docker
 
+Ensure docker is available locally. Compile docker image using
+```
+gradle jibDockerBuild
+docker-compose up
+```
 
 ## API calls
 
@@ -30,13 +39,13 @@ http://localhost:<port>/romannumeral?query=<input>
 and
 http://localhost:<port>/romannumeral?min=<input>&max=<input>
 ```
-
 ## REST API Configuration
 The code uses 3 configuration parameters. http.Port, roman.min and roman.max.
 - http.port : port is useful to set the http startup port
 - roman.min and roman.max: These are the minimum and maximum ranges supported by service.
        represented by config parameter roman.min and roman.max
-       
+The code can also take HTTP_PORT environment variable for docker container support.
+
 ## Swagger Documentation
 ![Swagger](https://github.com/sivaswami/roman/blob/master/design/swagger_screenshot.png)
 
