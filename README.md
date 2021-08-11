@@ -26,15 +26,22 @@ Fill in the fields of gradle.properties to include any proxies. If no proxies, r
 ```
 rm gradle.properties
 
+
 ```
 
+### Configuration
+The upper limit of Roman numbers allowed can be set using ROMAN_MAX environment variable or roman.max config variable.
+The http port can be set using HTTP_PORT environment variable. These variables can be set using Docker compose or Dockerfile.
+The default values of HTTP_PORT is 8080, ROMAN_MAX is 3999 and ROMAN_MIN is 1.
+```
+export HTTP_PORT=8080 # or custom port
+export ROMAN_MAX=1 # should be between 1 to 3999
+export ROMAN_MAX=255 # for 255 or 3999. should be between 1 to 3999
+```
 ### Compile and run the code locally
 
 Run the code with
 ```
-export HTTP_PORT=8080 # or custom port
-export ROMAN_MAX=255 # for 255 or 3999
-
 ./gradlew clean app:run
 
 (or)
