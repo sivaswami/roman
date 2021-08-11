@@ -4,6 +4,8 @@
 
 This code uses REST API and Asynchronous calls (Vertx.io) to convert a given number to Roman numeral.
 
+![Design](https://github.com/sivaswami/roman/blob/master/design/romanServiceDesign.jpg)
+
 ## API calls
 This service provides 2 API's.
 ```
