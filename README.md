@@ -52,6 +52,9 @@ Compile docker image using
 gradle jibDockerBuild
 ```
 
+![Design](https://github.com/sivaswami/roman/blob/master/design/dockerBuild.png)
+
+
 change HTTP_PORT & ROMAN_MAX environment variable in docker-compose.yaml to change server port and roman number maximum in docker file.
 
 ``` 
