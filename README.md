@@ -4,6 +4,8 @@
 
 This code uses REST API and Asynchronous calls (Vertx.io) to convert a given number to Roman numeral.
 
+## Design
+
 ![Design](https://github.com/sivaswami/roman/blob/master/design/romanServiceDesign.jpg)
 
 ## API calls
@@ -14,9 +16,14 @@ and
 http://localhost:<port>/romannumeral?min=<input>&max=<input>
 ```
 ## Swagger Documentation
+![Swagger](https://github.com/sivaswami/roman/blob/master/design/swagger_screenshot.png)
 
 
-## Design
+## Health and Metrics
+![Health](https://github.com/sivaswami/roman/blob/master/design/HealthCheck_screenshot.png)
+![Metrics](https://github.com/sivaswami/roman/blob/master/design/metrics_screenshot.png)
+
+
 
 ## REST API Configuration
 The code uses 3 configuration parameters. http.Port, roman.min and roman.max.
